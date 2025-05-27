@@ -8,9 +8,23 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from django.http import Http404
 from rest_framework.response import Response
+from .utils import ler_excel, criar_ambiente, ler_historico, criar_historico
+
 
 # Create your views here.
 # Views dos sensores
+
+# def importar_dados_view(request):
+#     pasta = 'Desktop\integrador_pwbe\app\excel'  # exemplo: '/home/seuuser/planilhas'
+
+#     mensagens = importar_dados_excel(pasta)
+#     return JsonResponse({"mensagens": mensagens})
+
+
+def mostrar_excel(request):
+    df = pd.read_excel('meuarquivo.xlsx')
+    return JsonResponse(df.to_dict(orient='records'), safe=False)
+
 class SensoresListCreate(ListCreateAPIView):
     queryset = Sensores.objects.all()
     serializer_class = SensoresSerializer
@@ -21,6 +35,7 @@ class SensoresRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     serializer_class = SensoresSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
+
 
 # Mostra uma mensagem sempre que um sensor for deletado do banco de dados
     def destroy(self, request, *args, **kwargs):

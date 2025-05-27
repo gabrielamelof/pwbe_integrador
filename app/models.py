@@ -1,6 +1,7 @@
 from django.db import models
-
+from import_export import resources
 # Create your models here.
+
 class Sensores(models.Model):
     SENSORES_CHOICES = [
         ('U', 'Umidade'), 
@@ -43,7 +44,7 @@ class Ambientes(models.Model):
     REQUIRED_FIELDS = ['sig', 'ni', 'responsavel']
 
     def __str__(self):
-        return self.sig
+        return f"{self.sig}"
 
 
 class Historico(models.Model):
