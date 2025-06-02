@@ -4,13 +4,13 @@ from import_export import resources
 
 class Sensores(models.Model):
     SENSORES_CHOICES = [
-        ('U', 'Umidade'), 
-        ('T', 'Temperatura'),
-        ('L', 'Luminosidade'),
-        ('C' , 'Contador')
+        ('umidade', 'Umidade'), 
+        ('temperatura', 'Temperatura'),
+        ('luminosidade', 'Luminosidade'),
+        ('contador' , 'Contador')
     ]
 
-    sensor = models.CharField(max_length=1, choices=SENSORES_CHOICES, default='T')
+    sensor = models.CharField(max_length=12, choices=SENSORES_CHOICES, default='T')
     mac_address = models.CharField(max_length=20)
 
     UNIDADE_CHOICES = [
@@ -20,16 +20,16 @@ class Sensores(models.Model):
         ('Num', 'Num')
     ]
 
-    unidade_med = models.CharField(max_length=3, choices=UNIDADE_CHOICES, default='°C')
+    unidade_med = models.CharField(max_length=6, choices=UNIDADE_CHOICES, default='°C')
     latitude = models.FloatField()
     longitude = models.FloatField()
 
     STATUS_CHOICES = [
-        ('A', 'Ativo'),
-        ('I', 'Inativo')
+        ('ativo', 'Ativo'),
+        ('inativo', 'Inativo')
     ]
 
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='A')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='A')
 
     def __str__(self):
         return self.sensor

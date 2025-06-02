@@ -6,9 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
-from django.http import Http404
+import pandas as pd
+from django.http import Http404, JsonResponse
 from rest_framework.response import Response
-from .utils import ler_excel, criar_ambiente, ler_historico, criar_historico
+from .utils import ler_excel, criar_ambiente, exportar_sensores, normalizar_status 
 
 
 # Create your views here.
