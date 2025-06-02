@@ -9,7 +9,7 @@ from rest_framework import serializers
 import pandas as pd
 from django.http import Http404, JsonResponse
 from rest_framework.response import Response
-from .utils import ler_excel, criar_ambiente, exportar_sensores, normalizar_status 
+from .utils import ler_excel, criar_ambiente, exportar_sensores, normalizar_status, exportar_ambientes
 
 
 # Create your views here.

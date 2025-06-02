@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 from .models import Ambientes, Historico, Sensores
 from django.http import JsonResponse, HttpResponse
@@ -7,13 +8,22 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # pasta onde está o scri
 ambientes_excel = os.path.join(BASE_DIR, 'excel', 'ambientes.xlsx')
 umidade_excel = os.path.join(BASE_DIR, 'excel', 'umidade.xlsx')
 contador_excel = os.path.join(BASE_DIR, 'excel', 'contador.xlsx')
+historico_excel = os.path.join(BASE_DIR, 'excel', 'histórico.xlsx')
 luminosidade_excel = os.path.join(BASE_DIR, 'excel', 'luminosidade.xlsx')
 temperatura_excel = os.path.join(BASE_DIR, 'excel', 'temperatura.xlsx')
 #arquivo = r'C:\Users\45526185800\Desktop\integrador_pwbe\app\excel\ambientes.xlsx'
 
 def ler_excel(request):
     ler_excel_sensores()
+    ler_excel_ambientes()
+    ler_excel_historico()
     return JsonResponse({'mensagem': 'Os dados das planilhas excel foram importados com sucesso!'})
+
+# def exportar_excel(request):
+#     exportar_ambientes(request)
+#     exportar_sensores(request)
+#     return JsonResponse({'mensagem': 'As planilhas foram exportadas com sucesso!'})
+
 
 
 def ler_excel_sensores():
@@ -45,6 +55,31 @@ def ler_excel_ambientes():
      df = pd.concat([pd.read_excel(ambientes_excel)])
      print(df)
 
+     for _, row in df.iterrows():
+        ambiente = criar_ambiente(
+            sig = row['sig'],
+            descricao = row['descricao'],
+            ni = row['ni'],
+            responsavel = row['responsavel'],
+        )
+        
+        print(ambiente)
+
+def ler_excel_historico():
+     df = pd.concat([pd.read_excel(historico_excel)])
+     print(df)
+
+     for _, row in df.iterrows():
+        historico = criar_historico(
+            sensor = row['sensor'],
+            ambiente = row['ambiente'],
+            valor = row['valor'],
+            timestamp = row['timestamp'],
+        )
+        
+        print(historico)
+
+
 
 # ---------------------------------------------------------------------------------------
 
@@ -63,11 +98,20 @@ def criar_sensores(sensor, mac_address, unidade_med, latitude, longitude, status
 def criar_ambiente(sig, descricao, ni, responsavel):
     ambiente = Ambientes.objects.create(
         sig=sig,
-        desc=descricao,
+        descricao=descricao,
         ni=ni,
         responsavel=responsavel
     )
     return ambiente
+
+def criar_historico(sensor, ambiente, valor, timestamp):
+    historico = Historico.objects.create(
+        sensor=sensor,
+        ambiente=ambiente,
+        valor=valor,
+        timestamp=timestamp
+    )
+    return historico
 
 def exportar_sensores(request):
     todos_sensores = Sensores.objects.all().values()
@@ -82,7 +126,30 @@ def exportar_sensores(request):
     response = HttpResponse(content="application/vnd.ms-excel")
     response['Content-Disposition'] = f'attachment; filename="output.csv"'
     
-    df.to_csv(response, header=['id', 'sensor', 'mac_address', 'und_med', 'latitude', 'longitude', 'status'], index=False, sep=';')
+    df.to_csv(response, header=['id', 'sensor', 'mac_address', 'und_med', 'latitude', 'longitude', 'status'], index=False, sep=';', encoding='utf-8-sig')
+    
+    return response
+
+def exportar_ambientes(request):
+    todos_ambientes = Ambientes.objects.all().values()
+    items = []
+    
+    for ambiente in todos_ambientes:
+        item = [
+            str(ambiente['id']),
+            str(ambiente['sig']).strip(),
+            limpar_texto(ambiente['descricao']),
+            limpar_texto(ambiente['ni']),
+            limpar_texto(ambiente['responsavel']),
+        ]
+        items.append(item)
+        # items.append(list(ambiente.values()))
+    
+    df = pd.DataFrame(items)
+    
+    response = HttpResponse(content_type="text/csv")
+    response['Content-Disposition'] = f'attachment; filename="ambientes.csv"'
+    df.to_csv(response, header=['id', 'sig', 'descricao', 'ni', 'responsavel'], index=False, sep=';', encoding='utf-8')
     
     return response
 
@@ -120,3 +187,15 @@ def normalizar_status(valor):
             return 'inativo'
 
     return 'inativo'
+
+def limpar_texto(texto):
+    if pd.isna(texto):
+        return ''
+    
+    texto = str(texto)
+    # Remove BOM, espaços não separáveis, etc.
+    texto = texto.replace('\ufeff', '')  # BOM (Byte Order Mark)
+    texto = texto.replace('\xa0', ' ')   # Espaço não separável
+    #texto = re.sub(r'\s+', ' ', texto)   # Remove espaços duplicados
+    return texto.strip()
+    # return str(texto).replace('\xa0', ' ').strip()
